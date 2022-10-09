@@ -7,6 +7,7 @@ char webpage[] PROGMEM = R"=====(
       Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
       Socket.onmessage = function(event){
         document.getElementById("encoder_value").innerHTML = event.data;
+        document.getElementById("brightness").value = event.data;
       }
     }
     function sendText(){
@@ -29,7 +30,7 @@ char webpage[] PROGMEM = R"=====(
   </div>
   <hr/>
   <div>
-    <input type="range" min="0" max="1023" value="512" id="brightness" oninput="sendBrightness()" />
+    <input type="range" min="0" max="255" value="124" id="brightness" onchange="sendBrightness()" oninput="sendBrightness()"/>
   </div>
   <div>
     <button onClick="init()"> Reconnect </button>

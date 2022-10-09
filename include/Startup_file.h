@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <Webserver_file.h>
+#include <WebSocketsServer.h>
+#include <ESP8266WebServer.h>
 #include <Webpage_file.h>
 #include <Encoder_file.h>
 #include <FastLED.h>
@@ -26,6 +27,46 @@ void loadingAnimation(){
     FastLED.show();
 }
 
+//////////////// webserver
+ESP8266WebServer server;
+WebSocketsServer webSocket = WebSocketsServer(81);
+
+char* ssid = "Anonymus";
+char* password = "camera18";
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length){
+  if(type == WStype_TEXT){
+    if(payload[0] == '#'){
+      uint16_t brightness = (uint16_t) strtol((const char *) &payload[1], NULL, 10);
+      
+      encoderCounterHasChanged = true;
+      encoderCounter= brightness;
+
+    //   fill_solid (leds, NUM_LEDS, CHSV(brightness, 255, 255));
+    //   FastLED.show();
+      Serial.print("brightness= ");
+      Serial.println(brightness);
+
+    //
+    char buffer[5];
+    sprintf(buffer, "%d", brightness);
+    webSocket.broadcastTXT(buffer);
+    //
+
+    }
+
+    else{
+      for(int i = 0; i < length; i++)
+        Serial.print((char) payload[i]);
+      Serial.println();
+    }
+  }
+  
+}
+///////////////// webserver
+
+bool conectedFlag = false;
+byte loadingIndex = 0;
 
 void startup() {
     FastLED.addLeds<WS2812B,D1>(leds, NUM_LEDS);
@@ -37,22 +78,25 @@ void startup() {
 
     WiFi.begin(ssid,password);
     Serial.begin(115200);
-    while(WiFi.status()!=WL_CONNECTED)
-    {
+    while(WiFi.status()!=WL_CONNECTED){
         // {
         //     EVERY_MS(500){
+        //         if (WiFi.status() == WL_CONNECTED) conectedFlag = true;
         //         Serial.print(".");
-        //         // leds[0] = CHSV(255, 255, 255);
+        //         leds[0] = CHSV(255, 255, 255);
         //         }
         // }
         // {
-        //         EVERY_MS(50){
+        //         EVERY_MS(20){
         //         loadingAnimation();
         //     }
         // }
 
-        Serial.print(".");      
-        delay(500);
+    // leds[loadingIndex++] = CHSV(255, 255, 255);
+    fill_solid (leds, NUM_LEDS, CHSV(random8(), 255, 255));
+    FastLED.show();
+    Serial.print(".");
+    delay(500);
         
     }
     Serial.println("");

@@ -11,8 +11,10 @@ IRAM_ATTR void isr() {
   if ((currentState == 0 || currentState == 3) && currentState != lastState){
     lastState = currentState;
     if ((currentState == 0 && intermediateState == 1) || (currentState == 3 && intermediateState == 2)) {
-      encoderCounter++;
-    } else encoderCounter--;
+      if (encoderCounter<254) encoderCounter++;
+    } else {
+      if (encoderCounter>0) encoderCounter--;
+    }
 
     encoderCounterHasChanged = true;
     intermediateState = 5;
